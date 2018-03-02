@@ -9,16 +9,16 @@ import java.util.Arrays;
  */
 public class Autocomplete 
 {
-	private final Term[] terms;
+	private final Term[] allTerms;
 	
 	//Initialize the data structure from the give array of terms.
 	public Autocomplete(Term[] terms)
 	{
 		if(terms == null)throw new NullPointerException();
 		
-		this.terms = terms;
+		allTerms = terms;
 		//sort the terms in natural order
-		Arrays.sort(this.terms);
+		Arrays.sort(allTerms);
 	}
 	
 	//Return all terms that start with the given prefix, in descending order of weight.
@@ -27,19 +27,20 @@ public class Autocomplete
 		if(prefix == null)throw new NullPointerException();
 		
 		//grab the first index
-		int startingIndex = BinarySearchDeluxe.<Term>firstIndexOf(terms, new Term(prefix, 0), Term.byPrefixOrder(prefix.length()));
+		int startingIndex = BinarySearchDeluxe.<Term>firstIndexOf(allTerms, new Term(prefix, 0), Term.byPrefixOrder(prefix.length()));
 		
 		int matchesCount = numberOfMatches(prefix);
+		System.out.println("MATCHES : " + matchesCount);
 		Term[] matchedTerms = new Term[matchesCount];
 		
 		//Check to see if there are any matches before we create the array
-		for( int i = 0; i < matchesCount; i++)
+		for( int i = startingIndex; i < startingIndex + (matchesCount); i++)
 		{
-			matchedTerms[i] = terms[startingIndex + i];
+			matchedTerms[i - startingIndex] = allTerms[i];
 		}
 		
 		//sort the autocomplete terms with reverse weight order
-		Arrays.sort(matchedTerms, Term.byReverseWeightOrder());	
+		Arrays.sort(matchedTerms, Term.byReverseWeightOrder());
 		
 		return matchedTerms;
 	}
@@ -49,7 +50,18 @@ public class Autocomplete
 	{
 		if(prefix == null)throw new NullPointerException();
 		Term t = new Term(prefix, 0);
-		//last index - first index will give us the number of matches
-		return BinarySearchDeluxe.<Term>lastIndexOf(terms, t, Term.byPrefixOrder(prefix.length())) - BinarySearchDeluxe.<Term>firstIndexOf(terms, t, Term.byPrefixOrder(prefix.length())); 
+		
+		//grab both the first and last index
+		int l = BinarySearchDeluxe.<Term>lastIndexOf(allTerms, t, Term.byPrefixOrder(prefix.length()));
+		int f = BinarySearchDeluxe.<Term>firstIndexOf(allTerms, t, Term.byPrefixOrder(prefix.length()));
+		
+		//calculate the number of matches
+		int n = l - f;
+	
+		//make sure we actually get the correct number of matches
+		if(n > 0)
+			n++;
+		
+		return n;
 	}
 }
