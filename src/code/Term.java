@@ -35,9 +35,25 @@ public class Term implements Comparable<Term> {
     
     // Compare the terms in lexicographic order but using only the first r characters of each query.
     public static Comparator<Term> byPrefixOrder(int r) {
+    	
+    	if(r < 0) throw new IllegalArgumentException();
+    	
     	return new Comparator<Term>() {
             public int compare(Term t1, Term t2) {
-            	return (t1.query.substring(0, r).compareTo(t2.query.substring(0, r)));
+            	int end1 = r;
+            	int end2 = r;
+            	
+            	if(t1.query.length() < r)
+            	{
+            		end1 = t1.query.length();
+            	}
+            	
+            	if(t2.query.length() < r)
+            	{
+            		end2 = t2.query.length();
+            	}
+            	
+            	return (t1.query.substring(0, end1).compareTo(t2.query.substring(0, end2)));
             } 
     	};
     }
