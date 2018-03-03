@@ -26,18 +26,19 @@ public class Autocomplete
 	{
 		if(prefix == null)throw new NullPointerException();
 		
+		int matchesCount = numberOfMatches(prefix);
+		
+		Term[] matchedTerms = new Term[matchesCount];
+		
 		//grab the first index
 		int startingIndex = BinarySearchDeluxe.<Term>firstIndexOf(allTerms, new Term(prefix, 0), Term.byPrefixOrder(prefix.length()));
 		
-		int matchesCount = numberOfMatches(prefix);
-		System.out.println("MATCHES : " + matchesCount);
-		Term[] matchedTerms = new Term[matchesCount];
-		
 		//Check to see if there are any matches before we create the array
-		for( int i = startingIndex; i < startingIndex + (matchesCount); i++)
-		{
-			matchedTerms[i - startingIndex] = allTerms[i];
-		}
+		if(matchesCount > 0)
+			for( int i = 0; i < matchesCount; i++)
+			{
+				matchedTerms[i] = allTerms[startingIndex + i];
+			}
 		
 		//sort the autocomplete terms with reverse weight order
 		Arrays.sort(matchedTerms, Term.byReverseWeightOrder());
@@ -49,6 +50,7 @@ public class Autocomplete
 	public int numberOfMatches(String prefix)
 	{
 		if(prefix == null)throw new NullPointerException();
+		
 		Term t = new Term(prefix, 0);
 		
 		//grab both the first and last index
@@ -56,12 +58,15 @@ public class Autocomplete
 		int f = BinarySearchDeluxe.<Term>firstIndexOf(allTerms, t, Term.byPrefixOrder(prefix.length()));
 		
 		//calculate the number of matches
-		int n = l - f;
-	
-		//make sure we actually get the correct number of matches
-		if(n > 0)
-			n++;
 		
-		return n;
+		if(l == -1 || f == -1)
+			return 0;
+		
+		if(l == f)
+			return 1;
+		else if( l - f == 1)
+			return 2;
+		else
+			return l-f;
 	}
 }
