@@ -44,7 +44,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Container;
@@ -97,6 +96,7 @@ public class AutocompleteGUI extends JFrame {
     // Indicates whether to display weights next to query matches
     private boolean displayWeights = true;
 
+    private final Container content = getContentPane();
     /**
      * Initializes the GUI, and the associated Autocomplete object
      * @param filename the file to read all the autocomplete data from
@@ -109,7 +109,6 @@ public class AutocompleteGUI extends JFrame {
         setPreferredSize(new Dimension(DEF_WIDTH, DEF_HEIGHT));
         pack();
         setLocationRelativeTo(null);
-        Container content = getContentPane();
         GroupLayout layout = new GroupLayout(content);
         content.setLayout(layout);
         layout.setAutoCreateGaps(true);
@@ -118,7 +117,7 @@ public class AutocompleteGUI extends JFrame {
         final AutocompletePanel ap = new AutocompletePanel(filename);
 
         JLabel textLabel = new JLabel("Search query:");
-
+        
         // Create and add a listener to the Search button
         JButton searchButton = new JButton("Search Google");
         searchButton.addActionListener(
@@ -151,9 +150,10 @@ public class AutocompleteGUI extends JFrame {
                                 GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 
                         GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)
-                .addComponent(ap, 0, GroupLayout.DEFAULT_SIZE, DEF_WIDTH)
-                .addComponent(searchButton, GroupLayout.PREFERRED_SIZE, 
-                        GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)
+                .addComponent(ap, GroupLayout.DEFAULT_SIZE, 
+                		GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addComponent(searchButton, GroupLayout.DEFAULT_SIZE, 
+                        GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
         );
         
         layout.setVerticalGroup(
@@ -200,11 +200,11 @@ public class AutocompleteGUI extends JFrame {
         // DEF_COLUMNS should be the number of characters in suggListLen
 
         // number of columns in the search text that is kept
-        private final int DEF_COLUMNS = 45; 
+        private final int DEF_COLUMNS = DEF_HEIGHT; 
         
         // an example of one of the longest strings in the database
-        private final String suggListLen = 
-                "<b>Harry Potter and the Deathly Hallows: Part 1 (2010)</b>";
+        //private final String suggListLen = String.format("%0" + DEF_COLUMNS + "d", 0).replace("0"," "); // ensures that suggListen is synced with DEF_COLUMNS
+        private final String suggListLen = "                                                                                     ";
 
         /**
          * Creates the Autocomplete object and the search bar and suggestion
@@ -601,20 +601,18 @@ public class AutocompleteGUI extends JFrame {
                         // truncate length if needed
                         if (query.length() > suggListLen.length())
                             query = query.substring(0, suggListLen.length());
+                        
+                        int width = allResults[0].toString().substring(0, allResults[0].toString().indexOf("\t")).length();
 
                         // create the table HTML 
-                        results[i] = "<html><table width=\"" 
-                                + searchText.getPreferredSize().width + "\">"
-                                + "<tr><td align=left>" 
-                                + query.substring(0, textLen + 1)
-                                + "<b>" + query.substring(textLen + 1) + "</b>";
+                        results[i] = "<html><table width=\"" + searchText.getPreferredSize().width + "\"><tr>";
                         if (displayWeights) {
-                            results[i] += "<td width=\"10%\" align=right>"
-                                    + "<font size=-1><span id=\"weight\" "
-                                    + "style=\"float:right;color:gray\">" 
-                                    + weight + "</font>";
+                            results[i] += "<td width=\"" + width +"\" align=right><font size=-1><span id=\"weight\" "
+                                    + "style=\"float:right;color:gray\">" +  weight + "</font>";
                         }
-                        results[i] += "</table></html>";
+                        results[i] += "<td align=left>"
+                        + query.substring(0, textLen + 1)
+                        + "<b>" + query.substring(textLen + 1) + "</b></table></html>";
                     }
                     suggestions.setListData(results);
                     suggestions.setVisible(true);
@@ -635,7 +633,7 @@ public class AutocompleteGUI extends JFrame {
             if (!suggestions.isSelectionEmpty()) {
                 String selection = (String) suggestions.getSelectedValue();
                 if (displayWeights) {
-                    selection = selection.substring(0, selection.indexOf("<td width="));
+                    selection = selection.substring(selection.indexOf("<td align="), selection.indexOf("</b>"));
                 }
                 selection = selection.replaceAll("\\<.*?>", "");
                 selection = selection.replaceAll("^[ \t]+|[ \t]+$", "");
